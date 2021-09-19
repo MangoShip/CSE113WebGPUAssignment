@@ -1,3 +1,7 @@
+/*
+*   CSE 113 Assignment X Part 1
+*   Web Worker (Single-Thread)
+*/
 function main() {
     
     // Number of particles
