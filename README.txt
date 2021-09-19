@@ -1,4 +1,5 @@
 1. Make sure to use Google Chrome Canary
+   https://www.google.com/chrome/canary/
 
 2. Make sure to launch a local server
 
