@@ -12,7 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Chooses shape of each rendered object\r\n[[stage(vertex)]]\r\nfn vert_main() -> [[builtin(position)]] vec4<f32> {                             \r\n    return vec4<f32>(1.0, 1.0, 0.0, 1.0);\r\n}\r\n\r\n// Chooses color of each rendered object\r\n[[stage(fragment)]] \r\nfn frag_main() -> [[location(0)]] vec4<f32> {\r\n    return vec4<f32>(1.0, 1.0, 1.0, 1.0);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Renders a particle at its position\r\n[[stage(vertex)]]\r\nfn vert_main([[location(0)]] particlePos : vec2<f32>) -> [[builtin(position)]] vec4<f32> {  \r\n    return vec4<f32>(particlePos, 0.0, 1.0);\r\n}\r\n\r\n// Determines color of each object\r\n[[stage(fragment)]] \r\nfn frag_main() -> [[location(0)]] vec4<f32> {\r\n    return vec4<f32>(1.0, 1.0, 1.0, 1.0);\r\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("struct Particle {\r\n    pos : vec2<f32>;\r\n};\r\n\r\n[[block]] struct Particles {\r\n    particles : [[stride(16)]] array<Particle>;\r\n};\r\n\r\n[[binding(0), group(0)]] var<storage, read_write> particlesA : Particles;\r\n\r\n[[stage(compute), workgroup_size(64)]]\r\nfn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {\r\n    var index : u32 = GlobalInvocationID.x;\r\n\r\n    var vPos = particlesA.particles[index].pos;\r\n\r\n    vPos.x = vPos.x + 1.0;\r\n    vPos.y = vPos.y + 1.0;\r\n\r\n    // Write new particle data\r\n    particlesA.particles[index].pos = vPos;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("struct Particle {\r\n    pos : vec2<f32>;\r\n};\r\n\r\n[[block]] struct Particles {\r\n    particles : [[stride(8)]] array<Particle>;\r\n};\r\n\r\n[[binding(0), group(0)]] var<storage, read_write> particlesA : Particles;\r\n\r\n[[stage(compute), workgroup_size(64)]]\r\nfn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {\r\n    var index : u32 = GlobalInvocationID.x;\r\n\r\n    // Get position of current particle\r\n    var vPos = particlesA.particles[index].pos;\r\n\r\n    // ADD YOUR COMPUTATION HERE\r\n    //\r\n    //\r\n    //\r\n    //\r\n    //\r\n        \r\n    // Example Computation (DELETE THIS)\r\n    vPos.x = vPos.x + 0.001;\r\n    vPos.y = vPos.y + 0.001;\r\n\r\n    // Write new particle data\r\n    particlesA.particles[index].pos = vPos;\r\n}");
 
 /***/ })
 
@@ -132,6 +132,18 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         vertex: {
             module: spriteShaderModule,
             entryPoint: 'vert_main',
+            buffers: [
+                {
+                    arrayStride: 2 * 4,
+                    attributes: [
+                        {
+                            shaderLocation: 0,
+                            offset: 0,
+                            format: 'float32x2',
+                        }
+                    ]
+                }
+            ]
         },
         fragment: {
             module: spriteShaderModule,
@@ -165,50 +177,33 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         particlesData[2 * i + 1] = 2 * (Math.random() - 0.5); // Y position
     }
     // Create a buffer for particles 
-    const particleBuffers = new Array(2);
-    const particleBindGroups = new Array(2);
-    for (let i = 0; i < 2; i++) {
-        particleBuffers[i] = device.createBuffer({
-            size: particlesData.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
-            mappedAtCreation: true,
-        });
-        new Float32Array(particleBuffers[i].getMappedRange()).set(particlesData);
-        particleBuffers[i].unmap();
-    }
-    // Assign bind group to computePipeline
-    for (let i = 0; i < 2; i++) {
-        particleBindGroups[i] = device.createBindGroup({
-            layout: computePipeline.getBindGroupLayout(0),
-            entries: [
-                {
-                    binding: 0,
-                    resource: {
-                        buffer: particleBuffers[i],
-                        offset: 0,
-                        size: particlesData.byteLength
-                    }
-                }
-            ]
-        });
-    }
-    const vertexBufferData = new Float32Array([
-        0.0, 0.0
-    ]);
-    const spriteVertexBuffer = device.createBuffer({
-        size: vertexBufferData.byteLength,
-        usage: GPUBufferUsage.VERTEX,
+    const particleBuffer = device.createBuffer({
+        size: particlesData.byteLength,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
         mappedAtCreation: true,
     });
-    new Float32Array(spriteVertexBuffer.getMappedRange()).set(vertexBufferData);
-    spriteVertexBuffer.unmap();
+    new Float32Array(particleBuffer.getMappedRange()).set(particlesData);
+    particleBuffer.unmap();
+    // Create a bind group
+    const particleBindGroup = device.createBindGroup({
+        layout: computePipeline.getBindGroupLayout(0),
+        entries: [
+            {
+                binding: 0,
+                resource: {
+                    buffer: particleBuffer,
+                    offset: 0,
+                    size: particlesData.byteLength
+                }
+            }
+        ]
+    });
     // Variables for performance measurement (fps)
     var updatePerformance = true;
     var currentTime, previousTime;
     currentTime = previousTime = performance.now();
     var totalFramePerSecond = 0;
     var frameCounter = 0;
-    let t = 0;
     function frame() {
         const textureView = context.getCurrentTexture().createView();
         const renderPassDescriptor = {
@@ -225,7 +220,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             // Computation
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
-            passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
+            passEncoder.setBindGroup(0, particleBindGroup);
             passEncoder.dispatch(Math.ceil(NUMPARTICLES / 64));
             passEncoder.endPass();
         }
@@ -233,14 +228,12 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             // Rendering
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
-            passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
-            passEncoder.setVertexBuffer(1, spriteVertexBuffer);
-            passEncoder.draw(1, NUMPARTICLES, 0, 0);
+            passEncoder.setVertexBuffer(0, particleBuffer);
+            passEncoder.draw(NUMPARTICLES);
             passEncoder.endPass();
         }
         // Finished rendering
         device.queue.submit([commandEncoder.finish()]);
-        ++t;
         // Measure performance
         currentTime = performance.now();
         var elapsedTime = currentTime - previousTime;
