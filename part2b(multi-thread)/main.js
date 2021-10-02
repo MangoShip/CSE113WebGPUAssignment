@@ -1,6 +1,8 @@
 /*
-*   CSE 113 Assignment X Part 2
+*   CSE 113 Assignment X Part 2b
 *   Web Worker (Multi-Thread)
+*   This part initialize Web Workers only once
+*   There should be significant increase of performance compared to Part 2a
 */
 function main() {
     

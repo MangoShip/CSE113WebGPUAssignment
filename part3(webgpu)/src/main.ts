@@ -34,11 +34,11 @@ export const main = async() => {
                 {
                     arrayStride: 2 * 4,
                     attributes: [
-                      {
-                        shaderLocation: 0,
-                        offset: 0,
-                        format: 'float32x2',
-                      }
+                        {
+                            shaderLocation: 0,
+                            offset: 0,
+                            format: 'float32x2',
+                        }
                     ]
                 }
             ]
@@ -47,9 +47,9 @@ export const main = async() => {
             module: spriteShaderModule,
             entryPoint: 'frag_main',
             targets: [
-              {
-                format: format as GPUTextureFormat
-              },
+                {
+                    format: format as GPUTextureFormat
+                },
             ],
         },
         primitive: { // Chooses which type of shape 
