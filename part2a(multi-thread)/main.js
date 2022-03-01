@@ -1,7 +1,7 @@
 /*
-*   CSE 113 Assignment X Part 2a
+*   CSE 113 Assignment 5 Part 2a
 *   Web Worker (Multi-Thread)
-*   This part initialize Web Workers every frame
+*   This part initialize and terminates Web Workers every frame
 */
 function main() {
     

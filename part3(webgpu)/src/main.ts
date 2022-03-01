@@ -1,6 +1,6 @@
 /*
-*   CSE 113 Assignment X Part 3
-*   Web Worker (WebGPU)
+*   CSE 113 Assignment 5 Part 3
+*   WebGPU
 */
 
 import spriteWGSL from './sprite.wgsl';

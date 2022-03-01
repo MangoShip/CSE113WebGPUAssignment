@@ -1,5 +1,5 @@
 /*
-*   CSE 113 Assignment X Part 1
+*   CSE 113 Assignment 5 Part 1
 *   Web Worker (Single-Thread)
 */
 function main() {
