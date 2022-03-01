@@ -116,6 +116,12 @@ function main() {
                             updatePerformance = true;
                         }, 50);
                     }
+
+                    // Terminate all workers
+                    for (let j = 0; j < NUMWORKERS; ++j) {
+                        workerList[j].terminate();
+                    }
+                    
                     requestAnimationFrame(frame);
                 }
             }
