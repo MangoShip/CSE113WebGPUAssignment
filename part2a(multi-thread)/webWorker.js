@@ -26,5 +26,5 @@ self.onmessage = function(event) {
     }
     
     // Send back new data back to main.js
-    postMessage(particlesData);
+    postMessage(null);
 }

@@ -2,7 +2,7 @@ struct Particle {
     pos : vec2<f32>;
 };
 
-[[block]] struct Particles {
+@block struct Particles {
     particles : [[stride(8)]] array<Particle>;
 };
 
