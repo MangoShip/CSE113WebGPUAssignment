@@ -6,9 +6,9 @@
  
 3. Launch local server 
 
-   1. Type `npm install -g local-web-server` in terminal while being in project directory
-   2. Type `ws` to launch a local server
-   3. Navigate to `http://localhost:8000` (Part 1, 2), `http://localhost:8000/dist/` (Part 3) in Chrome 
+   1. Type `npm install -g local-web-server` in terminal while being in project directory. 
+   2. Type `ws` to launch a local server.
+   3. Navigate to `http://localhost:8000` (Part 1, 2), `http://localhost:8000/dist/` (Part 3) in Chrome.
 
 # Compiling & Seeing change
 
@@ -20,6 +20,7 @@ Once you make any change to code, simply save the file and refresh the web brosw
 
 Once you make any change to code, save the file and open another terminal.
 After navigating to project directory on terminal, type `npm run dev`. 
+If you receive an error message about webpack, try typing `npm install -D webpack-cli`.
 The message should display that webpack has been compiled successfully.
 Then, refresh the web broswer to see the change. 
 
