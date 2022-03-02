@@ -99,8 +99,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _sprite_wgsl__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sprite.wgsl */ "./src/sprite.wgsl");
 /* harmony import */ var _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./updateSprite.wgsl */ "./src/updateSprite.wgsl");
 /*
-*   CSE 113 Assignment X Part 3
-*   Web Worker (WebGPU)
+*   CSE 113 Assignment 5 Part 3
+*   WebGPU
 */
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
