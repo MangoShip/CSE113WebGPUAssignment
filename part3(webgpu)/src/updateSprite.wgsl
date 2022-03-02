@@ -2,14 +2,14 @@ struct Particle {
     pos : vec2<f32>;
 };
 
-@block struct Particles {
-    particles : [[stride(8)]] array<Particle>;
+struct Particles {
+    particles : array<Particle>;
 };
 
-[[binding(0), group(0)]] var<storage, read_write> particlesA : Particles;
+@binding(0) @group(0) var<storage, read_write> particlesA : Particles;
 
-[[stage(compute), workgroup_size(64)]]
-fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
+@stage(compute) @workgroup_size(64)
+fn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     var index : u32 = GlobalInvocationID.x;
 
     // Get position of current particle

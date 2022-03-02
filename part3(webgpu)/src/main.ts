@@ -115,8 +115,9 @@ export const main = async() => {
             colorAttachments: [
                 {
                     view: textureView,
-                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 }, //background color
-                    storeOp: 'store'
+                    clearValue: {r: 0.0, g: 0.0, b: 0.0, a: 1.0},
+                    loadOp: "clear", //background color
+                    storeOp: "store"
                 }
             ]
         }
@@ -128,7 +129,8 @@ export const main = async() => {
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroup);
             passEncoder.dispatch(Math.ceil(NUMPARTICLES / 64));
-            passEncoder.endPass();
+            //passEncoder.endPass();
+            passEncoder.end();
         }
         {
             // Rendering
@@ -136,7 +138,8 @@ export const main = async() => {
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffer);
             passEncoder.draw(NUMPARTICLES);
-            passEncoder.endPass();      
+            //passEncoder.endPass();    
+            passEncoder.end();  
         }
         // Finished rendering
         device.queue.submit([commandEncoder.finish()]); 

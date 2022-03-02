@@ -12,7 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Renders a particle at its position\r\n[[stage(vertex)]]\r\nfn vert_main([[location(0)]] particlePos : vec2<f32>) -> [[builtin(position)]] vec4<f32> {  \r\n    return vec4<f32>(particlePos, 0.0, 1.0);\r\n}\r\n\r\n// Determines color of each object\r\n[[stage(fragment)]] \r\nfn frag_main() -> [[location(0)]] vec4<f32> {\r\n    return vec4<f32>(1.0, 1.0, 1.0, 1.0);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Renders a particle at its position\r\n@stage(vertex)\r\nfn vert_main(@location(0) particlePos : vec2<f32>) -> @builtin(position) vec4<f32> {  \r\n    return vec4<f32>(particlePos, 0.0, 1.0);\r\n}\r\n\r\n// Determines color of each object\r\n@stage(fragment)\r\nfn frag_main() -> @location(0) vec4<f32> {\r\n    return vec4<f32>(1.0, 1.0, 1.0, 1.0);\r\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("struct Particle {\r\n    pos : vec2<f32>;\r\n};\r\n\r\n[[block]] struct Particles {\r\n    particles : [[stride(8)]] array<Particle>;\r\n};\r\n\r\n[[binding(0), group(0)]] var<storage, read_write> particlesA : Particles;\r\n\r\n[[stage(compute), workgroup_size(64)]]\r\nfn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {\r\n    var index : u32 = GlobalInvocationID.x;\r\n\r\n    // Get position of current particle\r\n    var vPos = particlesA.particles[index].pos;\r\n\r\n    // ADD YOUR COMPUTATION HERE\r\n    //\r\n    //\r\n    //\r\n    //\r\n    //\r\n        \r\n    // Example Computation (DELETE THIS)\r\n    vPos.x = vPos.x + 0.001;\r\n    vPos.y = vPos.y + 0.001;\r\n\r\n    // Write new particle data\r\n    particlesA.particles[index].pos = vPos;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("struct Particle {\r\n    pos : vec2<f32>;\r\n};\r\n\r\nstruct Particles {\r\n    particles : array<Particle>;\r\n};\r\n\r\n@binding(0) @group(0) var<storage, read_write> particlesA : Particles;\r\n\r\n@stage(compute) @workgroup_size(64)\r\nfn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {\r\n    var index : u32 = GlobalInvocationID.x;\r\n\r\n    // Get position of current particle\r\n    var vPos = particlesA.particles[index].pos;\r\n\r\n    // ADD YOUR COMPUTATION HERE\r\n    //\r\n    //\r\n    //\r\n    //\r\n    //\r\n        \r\n    // Example Computation (DELETE THIS)\r\n    vPos.x = vPos.x + 0.001;\r\n    vPos.y = vPos.y + 0.001;\r\n\r\n    // Write new particle data\r\n    particlesA.particles[index].pos = vPos;\r\n}");
 
 /***/ })
 
@@ -210,8 +210,9 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             colorAttachments: [
                 {
                     view: textureView,
-                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                    storeOp: 'store'
+                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                    loadOp: "clear",
+                    storeOp: "store"
                 }
             ]
         };
@@ -222,7 +223,8 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroup);
             passEncoder.dispatch(Math.ceil(NUMPARTICLES / 64));
-            passEncoder.endPass();
+            //passEncoder.endPass();
+            passEncoder.end();
         }
         {
             // Rendering
@@ -230,7 +232,8 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffer);
             passEncoder.draw(NUMPARTICLES);
-            passEncoder.endPass();
+            //passEncoder.endPass();    
+            passEncoder.end();
         }
         // Finished rendering
         device.queue.submit([commandEncoder.finish()]);
