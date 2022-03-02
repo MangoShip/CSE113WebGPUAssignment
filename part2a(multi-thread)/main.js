@@ -33,7 +33,7 @@ function main() {
 
         // Draw a particle into canvas
         context.fillStyle = "white";
-        context.fillRect(particlesData[2 * i], particlesData[2 * i + 1], 1, 1);
+        context.fillRect(particlesData[2 * i], particlesData[2 * i + 1], 3, 3);
     }
 
     // Variables for performance measurement (fps)
@@ -90,7 +90,7 @@ function main() {
                     // Draw particles with new data into canvas
                     for (let i = 0; i < NUMPARTICLES; i++) {
                         context.fillStyle = "white";
-                        context.fillRect(particlesData[2 * i], particlesData[2 * i + 1], 1, 1);
+                        context.fillRect(particlesData[2 * i], particlesData[2 * i + 1], 3, 3);
                     }
 
                     // Measure performance
