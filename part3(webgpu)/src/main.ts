@@ -78,29 +78,46 @@ export const main = async() => {
         particlesData[2 * i + 1] = 2 * (Math.random() - 0.5); // Y position
     }
 
-    // Create a buffer for particles 
-    const particleBuffer: GPUBuffer = device.createBuffer({
-        size: particlesData.byteLength,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
-        mappedAtCreation: true,
-    })
-    new Float32Array(particleBuffer.getMappedRange()).set(particlesData);
-    particleBuffer.unmap();
+    // Create a buffer and bind group objects
+    const particleBuffers: GPUBuffer[] = new Array(2);
+    const particleBindGroups: GPUBindGroup[] = new Array(2);
+
+    // Create a buffer and map memory
+    for (let i = 0; i < 2; i++) {
+        particleBuffers[i] = device.createBuffer({
+            size: particlesData.byteLength,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
+            mappedAtCreation: true,
+        })
+        new Float32Array(particleBuffers[i].getMappedRange()).set(particlesData);
+        particleBuffers[i].unmap();
+    }
 
     // Create a bind group
-    const particleBindGroup: GPUBindGroup = device.createBindGroup({
-        layout: computePipeline.getBindGroupLayout(0),
-        entries: [
-            {
-                binding: 0,
-                resource: {
-                    buffer: particleBuffer,
-                    offset: 0,
-                    size: particlesData.byteLength
-                }
-            }
-        ]
-    })
+    for (let i = 0; i < 2; i++) {
+        particleBindGroups[i] = device.createBindGroup({
+            layout: computePipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: particleBuffers[i],
+                        offset: 0,
+                        size: particlesData.byteLength
+                    }
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: particleBuffers[(i + 1) % 2],
+                        offset: 0,
+                        size: particlesData.byteLength
+                    }
+                },
+            ]
+        })
+    }
+
 
     // Variables for performance measurement (fps)
     var updatePerformance = true;
@@ -109,6 +126,7 @@ export const main = async() => {
     var totalFramePerSecond = 0;
     var frameCounter = 0;
 
+    let t = 0;
     function frame() {
         const textureView = context.getCurrentTexture().createView();
         const renderPassDescriptor: GPURenderPassDescriptor = {
@@ -127,7 +145,7 @@ export const main = async() => {
             // Computation
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
-            passEncoder.setBindGroup(0, particleBindGroup);
+            passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
             passEncoder.dispatch(Math.ceil(NUMPARTICLES / 64));
             //passEncoder.endPass();
             passEncoder.end();
@@ -136,13 +154,14 @@ export const main = async() => {
             // Rendering
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
-            passEncoder.setVertexBuffer(0, particleBuffer);
+            passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
             passEncoder.draw(NUMPARTICLES);
             //passEncoder.endPass();    
             passEncoder.end();  
         }
         // Finished rendering
         device.queue.submit([commandEncoder.finish()]); 
+        ++t;
         
         // Measure performance
         currentTime = performance.now();

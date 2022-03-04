@@ -7,6 +7,7 @@ struct Particles {
 };
 
 @binding(0) @group(0) var<storage, read_write> particlesA : Particles;
+@binding(1) @group(0) var<storage, read_write> particlesB : Particles;
 
 @stage(compute) @workgroup_size(64)
 fn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
@@ -27,5 +28,5 @@ fn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     vPos.y = vPos.y + 0.001;
 
     // Write new particle data
-    particlesA.particles[index].pos = vPos;
+    particlesB.particles[index].pos = vPos;
 }

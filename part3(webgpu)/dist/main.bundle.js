@@ -26,7 +26,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("struct Particle {\r\n    pos : vec2<f32>;\r\n};\r\n\r\nstruct Particles {\r\n    particles : array<Particle>;\r\n};\r\n\r\n@binding(0) @group(0) var<storage, read_write> particlesA : Particles;\r\n\r\n@stage(compute) @workgroup_size(64)\r\nfn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {\r\n    var index : u32 = GlobalInvocationID.x;\r\n\r\n    // Get position of current particle\r\n    var vPos = particlesA.particles[index].pos;\r\n\r\n    // ADD YOUR COMPUTATION HERE\r\n    //\r\n    //\r\n    //\r\n    //\r\n    //\r\n        \r\n    // Example Computation (DELETE THIS)\r\n    vPos.x = vPos.x + 0.001;\r\n    vPos.y = vPos.y + 0.001;\r\n\r\n    // Write new particle data\r\n    particlesA.particles[index].pos = vPos;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("struct Particle {\r\n    pos : vec2<f32>;\r\n};\r\n\r\nstruct Particles {\r\n    particles : array<Particle>;\r\n};\r\n\r\n@binding(0) @group(0) var<storage, read_write> particlesA : Particles;\r\n@binding(1) @group(0) var<storage, read_write> particlesB : Particles;\r\n\r\n@stage(compute) @workgroup_size(64)\r\nfn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {\r\n    var index : u32 = GlobalInvocationID.x;\r\n\r\n    // Get position of current particle\r\n    var vPos = particlesA.particles[index].pos;\r\n\r\n    // ADD YOUR COMPUTATION HERE\r\n    //\r\n    //\r\n    //\r\n    //\r\n    //\r\n        \r\n    // Example Computation (DELETE THIS)\r\n    vPos.x = vPos.x + 0.001;\r\n    vPos.y = vPos.y + 0.001;\r\n\r\n    // Write new particle data\r\n    particlesB.particles[index].pos = vPos;\r\n}");
 
 /***/ })
 
@@ -176,34 +176,50 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         particlesData[2 * i] = 2 * (Math.random() - 0.5); // X position
         particlesData[2 * i + 1] = 2 * (Math.random() - 0.5); // Y position
     }
-    // Create a buffer for particles 
-    const particleBuffer = device.createBuffer({
-        size: particlesData.byteLength,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
-        mappedAtCreation: true,
-    });
-    new Float32Array(particleBuffer.getMappedRange()).set(particlesData);
-    particleBuffer.unmap();
+    // Create a buffer and bind group objects
+    const particleBuffers = new Array(2);
+    const particleBindGroups = new Array(2);
+    // Create a buffer and map memory
+    for (let i = 0; i < 2; i++) {
+        particleBuffers[i] = device.createBuffer({
+            size: particlesData.byteLength,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
+            mappedAtCreation: true,
+        });
+        new Float32Array(particleBuffers[i].getMappedRange()).set(particlesData);
+        particleBuffers[i].unmap();
+    }
     // Create a bind group
-    const particleBindGroup = device.createBindGroup({
-        layout: computePipeline.getBindGroupLayout(0),
-        entries: [
-            {
-                binding: 0,
-                resource: {
-                    buffer: particleBuffer,
-                    offset: 0,
-                    size: particlesData.byteLength
-                }
-            }
-        ]
-    });
+    for (let i = 0; i < 2; i++) {
+        particleBindGroups[i] = device.createBindGroup({
+            layout: computePipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: particleBuffers[i],
+                        offset: 0,
+                        size: particlesData.byteLength
+                    }
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: particleBuffers[(i + 1) % 2],
+                        offset: 0,
+                        size: particlesData.byteLength
+                    }
+                },
+            ]
+        });
+    }
     // Variables for performance measurement (fps)
     var updatePerformance = true;
     var currentTime, previousTime;
     currentTime = previousTime = performance.now();
     var totalFramePerSecond = 0;
     var frameCounter = 0;
+    let t = 0;
     function frame() {
         const textureView = context.getCurrentTexture().createView();
         const renderPassDescriptor = {
@@ -221,7 +237,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             // Computation
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
-            passEncoder.setBindGroup(0, particleBindGroup);
+            passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
             passEncoder.dispatch(Math.ceil(NUMPARTICLES / 64));
             //passEncoder.endPass();
             passEncoder.end();
@@ -230,13 +246,14 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             // Rendering
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
-            passEncoder.setVertexBuffer(0, particleBuffer);
+            passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
             passEncoder.draw(NUMPARTICLES);
             //passEncoder.endPass();    
             passEncoder.end();
         }
         // Finished rendering
         device.queue.submit([commandEncoder.finish()]);
+        ++t;
         // Measure performance
         currentTime = performance.now();
         var elapsedTime = currentTime - previousTime;
