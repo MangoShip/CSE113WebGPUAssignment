@@ -2,7 +2,8 @@
 self.onmessage = function(event) {
     
     // Unpack data received from main.js
-    var particlesData = new Float32Array(event.data.particlesBuffer);
+    var particlesComputeData = new Float32Array(event.data.particlesComputeBuffer);
+    var particlesRenderData = new Float32Array(event.data.particlesRenderBuffer);
     var startIndex = event.data.startIndex;
     var endIndex = event.data.endIndex;
 
@@ -20,8 +21,8 @@ self.onmessage = function(event) {
         */
         
         // Example Computation (DELETE THIS)
-        particlesData[2 * i] = particlesData[2 * i] + (Math.random() * 2 - 1)
-        particlesData[2 * i + 1] = particlesData[2 * i + 1] + (Math.random() * 2 - 1)
+        particlesRenderData[2 * i] = particlesComputeData[2 * i] + (Math.random() * 2 - 1)
+        particlesRenderData[2 * i + 1] = particlesComputeData[2 * i + 1] + (Math.random() * 2 - 1)
   
     }
     

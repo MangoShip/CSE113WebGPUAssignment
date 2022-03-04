@@ -15,21 +15,29 @@ function main() {
     context.fillStyle = "black";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Create a buffer for allowing shared memory
-    var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (NUMPARTICLES * 2));
+    // Create buffers for allowing shared memory
+    var particlesComputeBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (NUMPARTICLES * 2));
+    var particlesRenderBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (NUMPARTICLES * 2));
 
-    // Create an array to store each particles' position value
-    var particlesData = new Float32Array(particlesBuffer);
+    // Create arrays to store each particles' position value
+    var particlesComputeData = new Float32Array(particlesComputeBuffer); // Use for computation to avoid data race
+    var particlesRenderData = new Float32Array(particlesRenderBuffer); // Use for writing new particles' location for rendering
 
     // Go through all particles then declare their initial position in canvas
     for (let i = 0; i < NUMPARTICLES; i++) {
         // Get random position of each particle
-        particlesData[2 * i] = Math.random() * canvas.width; // X position
-        particlesData[2 * i + 1] = Math.random() * canvas.height; // Y position
+        var xPos = Math.random() * canvas.width;
+        var yPos = Math.random() * canvas.height
+
+        particlesComputeData[2 * i] = xPos; // X position
+        particlesComputeData[2 * i + 1] = yPos; // Y position
+
+        particlesRenderData[2 * i] = xPos; // X position
+        particlesRenderData[2 * i + 1] = yPos; // Y position
 
         // Draw a particle into canvas
         context.fillStyle = "white";
-        context.fillRect(particlesData[2 * i], particlesData[2 * i + 1], 3, 3);
+        context.fillRect(particlesRenderData[2 * i], particlesRenderData[2 * i + 1], 3, 3);
     }
 
     // Variables for performance measurement (fps)
@@ -48,7 +56,8 @@ function main() {
         // Gather all data together that will get send over to worker
         var transferData = {
             NUMPARTICLES: NUMPARTICLES,
-            particlesBuffer: particlesBuffer,
+            particlesComputeBuffer: particlesComputeBuffer,
+            particlesRenderBuffer: particlesRenderBuffer
         }
 
         // Send work to web worker
@@ -67,7 +76,12 @@ function main() {
             // Draw particles with new data into canvas
             for (let i = 0; i < NUMPARTICLES; i++) {
                 context.fillStyle = "white";
-                context.fillRect(particlesData[2 * i], particlesData[2 * i + 1], 3, 3);
+                context.fillRect(particlesRenderData[2 * i], particlesRenderData[2 * i + 1], 3, 3);
+            }
+
+            // Update particlesComputeData with particlesRenderData
+            for (let i = 0; i < particlesComputeData.length; i++) {
+                particlesComputeData[i] = particlesRenderData[i];
             }
 
             // Measure performance
