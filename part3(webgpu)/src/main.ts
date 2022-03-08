@@ -155,7 +155,7 @@ export const main = async() => {
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
-            passEncoder.draw(9, NUMPARTICLES, 0, 0);
+            passEncoder.draw(6, NUMPARTICLES, 0, 0);
             passEncoder.end();  
         }
         // Finished rendering
