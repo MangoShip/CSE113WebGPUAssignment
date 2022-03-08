@@ -124,7 +124,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const format = 'bgra8unorm';
     context.configure({
         device: device,
-        format: format
+        format: format,
     });
     // Read from sprite.wgsl and create a pipeline for rendering
     const spriteShaderModule = device.createShaderModule({ code: _sprite_wgsl__WEBPACK_IMPORTED_MODULE_0__["default"] });
@@ -143,8 +143,8 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
                             format: 'float32x2',
                         }
                     ]
-                },
-            ],
+                }
+            ]
         },
         fragment: {
             module: spriteShaderModule,
