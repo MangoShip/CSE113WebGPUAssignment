@@ -33,6 +33,7 @@ export const main = async() => {
             buffers: [
                 {
                     arrayStride: 2 * 4,
+                    stepMode: 'instance',
                     attributes: [
                         {
                             shaderLocation: 0,
@@ -53,7 +54,7 @@ export const main = async() => {
             ],
         },
         primitive: { // Chooses which type of shape 
-            topology: 'point-list'
+            topology: 'triangle-list'
         },
     })
 
@@ -147,7 +148,6 @@ export const main = async() => {
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
             passEncoder.dispatch(Math.ceil(NUMPARTICLES / 64));
-            //passEncoder.endPass();
             passEncoder.end();
         }
         {
@@ -155,8 +155,7 @@ export const main = async() => {
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
-            passEncoder.draw(NUMPARTICLES);
-            //passEncoder.endPass();    
+            passEncoder.draw(9, NUMPARTICLES, 0, 0);
             passEncoder.end();  
         }
         // Finished rendering

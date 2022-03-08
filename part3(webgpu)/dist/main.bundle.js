@@ -12,7 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Renders a particle at its position\r\n@stage(vertex)\r\nfn vert_main(@location(0) particlePos : vec2<f32>) -> @builtin(position) vec4<f32> {  \r\n    return vec4<f32>(particlePos, 0.0, 1.0);\r\n}\r\n\r\n// Determines color of each object\r\n@stage(fragment)\r\nfn frag_main() -> @location(0) vec4<f32> {\r\n    return vec4<f32>(1.0, 1.0, 1.0, 1.0);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Renders a particle at its position\r\n@stage(vertex)\r\nfn vert_main(@location(0) particlePos : vec2<f32>,\r\n             @builtin(vertex_index) VertexIndex : u32) -> @builtin(position) vec4<f32> {  \r\n\r\n    var shape = array<vec2<f32>, 6> (\r\n        vec2<f32>(-0.0025, 0.0025),\r\n        vec2<f32>(-0.0025, -0.0025),\r\n        vec2<f32>(0.0025, 0.0025),\r\n        vec2<f32>(0.0025, -0.0025),\r\n        vec2<f32>(-0.0025, -0.0025),\r\n        vec2<f32>(0.0025, 0.0025));\r\n\r\n    return vec4<f32>(particlePos + shape[VertexIndex], 0.0, 1.0);\r\n}\r\n\r\n// Determines color of each object\r\n@stage(fragment)\r\nfn frag_main() -> @location(0) vec4<f32> {\r\n    return vec4<f32>(1.0, 1.0, 1.0, 0.0);\r\n}");
 
 /***/ }),
 
@@ -124,7 +124,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const format = 'bgra8unorm';
     context.configure({
         device: device,
-        format: format,
+        format: format
     });
     // Read from sprite.wgsl and create a pipeline for rendering
     const spriteShaderModule = device.createShaderModule({ code: _sprite_wgsl__WEBPACK_IMPORTED_MODULE_0__["default"] });
@@ -135,6 +135,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             buffers: [
                 {
                     arrayStride: 2 * 4,
+                    stepMode: 'instance',
                     attributes: [
                         {
                             shaderLocation: 0,
@@ -142,8 +143,8 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
                             format: 'float32x2',
                         }
                     ]
-                }
-            ]
+                },
+            ],
         },
         fragment: {
             module: spriteShaderModule,
@@ -155,7 +156,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             ],
         },
         primitive: {
-            topology: 'point-list'
+            topology: 'triangle-list'
         },
     });
     // Read from updateSprite.wgsl and create a pipeline for computing
@@ -239,7 +240,6 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
             passEncoder.dispatch(Math.ceil(NUMPARTICLES / 64));
-            //passEncoder.endPass();
             passEncoder.end();
         }
         {
@@ -247,8 +247,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
-            passEncoder.draw(NUMPARTICLES);
-            //passEncoder.endPass();    
+            passEncoder.draw(9, NUMPARTICLES, 0, 0);
             passEncoder.end();
         }
         // Finished rendering
